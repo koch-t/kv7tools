@@ -1,11 +1,3 @@
---alter table timingpoint drop column ignore;
---alter table usertimingpoint drop column ignore;
-alter table timingpoint add column ignore boolean;
-alter table usertimingpoint add ignore boolean;
-update usertimingpoint set ignore = true WHERE EXISTS (SELECT 1 FROM localservicegrouppasstime as "p" where journeystoptype = 'INFOPOINT' AND p.userstopcode = usertimingpoint.userstopcode);
-update timingpoint set ignore = (select ignore from usertimingpoint as u where u.timingpointcode = timingpoint.timingpointcode LIMIT 1);
-
-
 create table gtfs_route_type (transporttype varchar(5) primary key, route_type int4);
 insert into gtfs_route_type values ('TRAM', 0);
 insert into gtfs_route_type values ('METRO', 1);
@@ -47,11 +39,8 @@ WHERE y.stopareacode = a.stopareacode
 UNION
 select stop_id, stop_name, CAST(st_X(the_geom) AS NUMERIC(8,5)) AS stop_lon, CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat, 0 AS location_type, parent_station FROM (select distinct t.timingpointcode as stop_id, t.timingpointname as stop_name, 'sa_'||t.stopareacode as parent_station, ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom from timingpoint as t, usertimingpoint as u where t.ignore is null AND u.timingpointcode = t.timingpointcode and u.userstopcode in (select distinct userstopcode from localservicegrouppasstime)) AS X) AS stops ORDER BY location_type DESC, stop_id ASC) TO '/tmp/gtfs/stops.txt' WITH CSV HEADER;
 
-update localservicegrouppasstime set linedirection = '1' where linedirection = 'A';
-update localservicegrouppasstime set linedirection = '2' where linedirection = 'B';
-
-
 copy (select l.dataownercode||'_'||lineplanningnumber as route_id, l.dataownercode||'_'||l.localservicelevelcode as service_id, l.dataownercode||'_'||lineplanningnumber||'_'||l.localservicelevelcode||'_'||journeynumber||'_'||fortifyordernumber as trip_id, destinationname50 as trip_headsign, (cast(linedirection as int4) - 1) as direction_id from localservicegrouppasstime as l, destination as d, (select distinct dataownercode, localservicelevelcode from localservicegroupvalidity) as v where l.dataownercode = d.dataownercode and l.destinationcode = d.destinationcode and l.userstopordernumber = 1 and v.dataownercode = l.dataownercode and v.localservicelevelcode = l.localservicelevelcode) TO '/tmp/gtfs/trips.txt' WITH CSV HEADER;
 
 update localservicegrouppasstime set targetdeparturetime = targetarrivaltime where targetdeparturetime = '00:00:00' AND journeystoptype = 'LAST';
-copy (select l.dataownercode||'_'||lineplanningnumber||'_'||l.localservicelevelcode||'_'||journeynumber||'_'||fortifyordernumber as trip_id, targetarrivaltime as arrival_time, targetdeparturetime as departure_time, timingpointcode as stop_id, userstopordernumber as stop_sequence, destinationname50 as stop_headsign, wheelchair_accessible from localservicegrouppasstime as l, destination as d, usertimingpoint as u, (select distinct dataownercode, localservicelevelcode from localservicegroupvalidity) as v,  gtfs_wheelchair_accessibility as w where w.wheelchairaccessibility = l.wheelchairaccessible and ignore is null and l.dataownercode = d.dataownercode and l.destinationcode = d.destinationcode and l.dataownercode = u.dataownercode and l.userstopcode = u.userstopcode and v.dataownercode = l.dataownercode and v.localservicelevelcode = l.localservicelevelcode) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
+
+copy (select l.dataownercode||'_'||lineplanningnumber||'_'||l.localservicelevelcode||'_'||journeynumber||'_'||fortifyordernumber as trip_id, targetarrivaltime as arrival_time, targetdeparturetime as departure_time, timingpointcode as stop_id, userstopordernumber as stop_sequence, destinationname50 as stop_headsign, wheelchair_accessible from localservicegrouppasstime as l, destination as d, usertimingpoint as u, (select distinct dataownercode, localservicelevelcode from localservicegroupvalidity) as v,  gtfs_wheelchair_accessibility as w where w.wheelchairaccessibility = l.wheelchairaccessible and journeystoptype != 'INFOPOINT' and l.dataownercode = d.dataownercode and l.destinationcode = d.destinationcode and l.dataownercode = u.dataownercode and l.userstopcode = u.userstopcode and v.dataownercode = l.dataownercode and v.localservicelevelcode = l.localservicelevelcode) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
