@@ -91,3 +91,45 @@ CREATE TABLE "localservicegroupvalidity" (
         "operationdate"         DATE          NOT NULL,
          PRIMARY KEY ("dataownercode", "localservicelevelcode", "operationdate")
 );
+CREATE TABLE "jopatiminglink" (
+        "dataownercode"              VARCHAR(10)   NOT NULL,
+        "lineplanningnumber"         VARCHAR(10)   NOT NULL,
+        "journeypatterncode"         VARCHAR(10)    NOT NULL,
+        "timinglinkorder"            DECIMAL(3)    NOT NULL,
+        "validfrom"                DATE           NOT NULL,
+        "userstopcodebegin"          VARCHAR(10)   NOT NULL,
+        "userstopcodeend"          VARCHAR(10)   NOT NULL,
+        "destinationcode"       VARCHAR(10)   NOT NULL,
+        "routelinkdistance"       DECIMAL(5)   NOT NULL,
+        "productformulatype"      VARCHAR(10),
+        "journeypatterntype"        VARCHAR(5),
+         PRIMARY KEY ("dataownercode", "lineplanningnumber", "journeypatterncode", "timinglinkorder", "validfrom")
+);
+CREATE TABLE "jopatiminglinkpool" (
+        "dataownercode"              VARCHAR(10)   NOT NULL,
+        "lineplanningnumber"         VARCHAR(10)   NOT NULL,
+        "journeypatterncode"         VARCHAR(10)    NOT NULL,
+        "timinglinkorder"            DECIMAL(3)    NOT NULL,
+        "validfrom"                DATE           NOT NULL,
+	"distancesincestartoflink"       DECIMAL(5)   NOT NULL,
+        "coordinatesystemtype"    VARCHAR(10),
+        "locationx_ew"    INTEGER       NOT NULL,
+        "locationy_ns"    INTEGER       NOT NULL,
+        "locationz"       INTEGER,
+         PRIMARY KEY ("dataownercode", "lineplanningnumber", "journeypatterncode", "timinglinkorder","validfrom", "distancesincestartoflink")
+);
+CREATE TABLE "userstop" (
+        "dataownercode"   VARCHAR(10)   NOT NULL,
+        "userstopcode" VARCHAR(10)   NOT NULL,
+        "timingpointdataownercode" VARCHAR(10)   NOT NULL,
+        "timingpointcode" VARCHAR(10)   NOT NULL,
+        "timingpointname" VARCHAR(50)   NOT NULL,
+        "timingpointtown" VARCHAR(50)   NOT NULL,
+        "timingpointsidecode" VARCHAR(50)   NOT NULL,
+        "stopareacode"    VARCHAR(10),
+        "coordinatesystemtype"    VARCHAR(10),
+        "locationx_ew"    INTEGER       NOT NULL,
+        "locationy_ns"    INTEGER       NOT NULL,
+        "locationz"       INTEGER,
+         PRIMARY KEY ("dataownercode", "userstopcode")
+);

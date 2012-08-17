@@ -15,6 +15,9 @@ tables = {
     'USERTIMINGPOINT': ['DataOwnerCode', 'UserStopCode'],
     'DATAOWNER': ['DataOwnerCode'],
     'STOPAREA': ['DataOwnerCode', 'StopAreaCode'],
+    'JOPATIMINGLINK': ['DataOwnerCode', 'LinePlanningNumber', 'JourneyPatternCode', 'TimingLinkOrder', 'ValidFrom'],
+    'JOPATIMINGLINKPOOL': ['DataOwnerCode', 'LinePlanningNumber', 'JourneyPatternCode', 'TimingLinkOrder', 'ValidFrom', 'DistanceSinceStartOfLink'],
+    'USERSTOP': ['DataOwnerCode', 'UserStopCode'],
 }
 
 requirements = set([])
@@ -52,6 +55,7 @@ for filename in kv7kalenderindex:
                 output.write(line[:-2].replace('\\0', '') + '\n')
 
                 available = {}
+kv7kalenderindex.close()
 
 kv7planningindex = open('kv7planning.idx', 'r')
 for line in kv7planningindex:
@@ -62,6 +66,7 @@ for line in kv7planningindex:
         #available[key].append(filename)
     elif (dataownercode + '|' + localservicelevelcode) in requirements:
         available[key] = [filename]
+kv7planningindex.close()
 
 output.write('\\.\n')
 use_files = set([])
@@ -73,6 +78,15 @@ for x in requirements:
     except:
         print x
 
+kv7networkindex = open('kv7network.idx', 'r')
+networkfiles = {}
+for line in kv7networkindex:
+    dataownercode, lineplanningnumber, filename = line[:-1].split('|')
+    networkfiles[dataownercode+'|'+lineplanningnumber] = filename
+kv7networkindex.close()
+
+for key,filename in networkfiles.items():
+    use_files.add(filename)
 
 first = True
 i = 0
@@ -87,22 +101,23 @@ for filename in sorted(use_files, reverse=True):
     columns = None
     table = None
     dumping = False
+    network = False
     done = set([])
     for line in GzipFile(sys.argv[2] + '/' + filename, 'r'):
         if line[0] == '\\':
-            if line[1] == 'L':
+            if line[1] == 'G':
+                network = line.split('|')[1] == 'KV7turbo_network'
+            elif line[1] == 'L':
                 columns = line[2:-2].split('|')
                 if table == 'LOCALSERVICEGROUPPASSTIME' and first:
                     output.write("COPY %(table)s (%(columns)s) FROM STDIN CSV DELIMITER '|' NULL AS '';\n" % {'columns': ', '.join(columns), 'table': table})
                     first = False
-                else:
+                elif not (network and table == 'DESTINATION'):
                     if table not in memory:
                         memory[table] = {}
                         memory_columns[table] = ', '.join(columns)
-
             elif line[1] == 'T':
                 table = line[2:].split('|')[0]
-
         else:
             line = line.decode('UTF-8')
             if table == 'LOCALSERVICEGROUPPASSTIME':
@@ -111,7 +126,7 @@ for filename in sorted(use_files, reverse=True):
                 if key in requirements:
                     done.add(key)
                     output.write(line[:-2].replace('\\0', '') + '\n')
-            else:
+            elif not (network and table == 'DESTINATION'):
                 mylines = line[:-2].split('|')
                 key = '|'.join(mylines[0:len(tables[table])])
                 if key not in memory[table]:
