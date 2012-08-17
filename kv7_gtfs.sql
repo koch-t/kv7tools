@@ -75,9 +75,9 @@ update localservicegrouppasstime set targetdeparturetime = targetarrivaltime whe
 
 copy (select l.dataownercode||'_'||lineplanningnumber||'_'||l.localservicelevelcode||'_'||journeynumber||'_'||fortifyordernumber as trip_id, 
 targetarrivaltime as arrival_time, targetdeparturetime as departure_time, timingpointcode as stop_id, userstopordernumber as stop_sequence, 
-destinationname50 as stop_headsign, wheelchair_accessible from localservicegrouppasstime as l, destination as d, usertimingpoint as u, (select 
-distinct dataownercode, localservicelevelcode from localservicegroupvalidity) as v,  gtfs_wheelchair_accessibility as w where 
-w.wheelchairaccessibility = l.wheelchairaccessible and journeystoptype != 'INFOPOINT' and l.dataownercode = d.dataownercode and l.destinationcode = 
+destinationname50 as stop_headsign from localservicegrouppasstime as l, destination as d, usertimingpoint as u, (select 
+distinct dataownercode, localservicelevelcode from localservicegroupvalidity) as v where 
+journeystoptype != 'INFOPOINT' and l.dataownercode = d.dataownercode and l.destinationcode = 
 d.destinationcode and l.dataownercode = u.dataownercode and l.userstopcode = u.userstopcode and v.dataownercode = l.dataownercode and 
 v.localservicelevelcode = l.localservicelevelcode) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
 
