@@ -114,7 +114,8 @@ SELECT
 l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.localservicelevelcode as service_id,
 l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
 destinationname50 as trip_headsign,
-(cast(linedirection as int4) - 1) as direction_id
+(cast(linedirection as int4) - 1) as direction_id,
+l.dataownercode||'|'||l.lineplanningnumber||'|'||l.journeypatterncode AS shape_id
 FROM 
 localservicegrouppasstime as l, destination as d, 
 (SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v 
@@ -148,3 +149,33 @@ l.userstopcode = u.userstopcode AND
 v.dataownercode = l.dataownercode AND
 v.localservicelevelcode = l.localservicelevelcode
 ) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
+
+
+
+COPY (
+SELECT DISTINCT shape_id,
+CAST(ST_Y(the_geom) AS NUMERIC(8,5)) AS shape_pt_lat,
+CAST(ST_X(the_geom) AS NUMERIC(7,5)) AS shape_pt_lon,
+shape_pt_sequence
+FROM (
+	SELECT
+	j.dataownercode||'|'||j.lineplanningnumber||'|'||j.journeypatterncode as shape_id,
+        ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
+        rank() over (PARTITION BY j.dataownercode, j.lineplanningnumber, j.journeypatterncode ORDER BY j.dataownercode, j.lineplanningnumber, j.journeypatterncode, j.timinglinkorder, p.distancesincestartoflink) AS shape_pt_sequence
+	FROM
+	(select *,min(validfrom) from jopatiminglink group by dataownercode,lineplanningnumber,journeypatterncode,timinglinkorder,validfrom) as j, 
+        (select *,min(validfrom) from jopatiminglinkpool group by dataownercode,lineplanningnumber,journeypatterncode,timinglinkorder,validfrom,distancesincestartoflink) as p
+        WHERE
+        j.dataownercode = p.dataownercode AND
+        j.lineplanningnumber = p.lineplanningnumber AND
+        j.journeypatterncode = p.journeypatterncode AND
+        j.timinglinkorder = p.timinglinkorder AND
+        j.validfrom = p.validfrom
+        ORDER BY 
+        j.dataownercode,
+        j.lineplanningnumber,
+        j.journeypatterncode,
+        j.timinglinkorder,
+        p.distancesincestartoflink
+) AS KV1
+) TO '/tmp/gtfs/shapes.txt' WITH CSV HEADER;
