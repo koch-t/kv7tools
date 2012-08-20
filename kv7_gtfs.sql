@@ -115,15 +115,17 @@ l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.lo
 l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
 destinationname50 as trip_headsign,
 (cast(linedirection as int4) - 1) as direction_id,
-l.dataownercode||'|'||l.lineplanningnumber||'|'||l.journeypatterncode AS shape_id
+l.dataownercode||'|'||l.lineplanningnumber||'|'||l.journeypatterncode AS shape_id,
+wheelchair_accessible
 FROM 
-localservicegrouppasstime as l, destination as d, 
+localservicegrouppasstime as l, destination as d, gtfs_wheelchair_accessibility as g,
 (SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v 
 WHERE l.dataownercode = d.dataownercode AND
 l.destinationcode = d.destinationcode AND
 l.userstopordernumber = 1 AND
 v.dataownercode = l.dataownercode AND
-v.localservicelevelcode = l.localservicelevelcode
+v.localservicelevelcode = l.localservicelevelcode AND
+g.wheelchairaccessibility = l.wheelchairaccessible
 ) TO '/tmp/gtfs/trips.txt' WITH CSV HEADER;
 
 UPDATE localservicegrouppasstime 
@@ -149,8 +151,6 @@ l.userstopcode = u.userstopcode AND
 v.dataownercode = l.dataownercode AND
 v.localservicelevelcode = l.localservicelevelcode
 ) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
-
-
 
 COPY (
 SELECT DISTINCT shape_id,
