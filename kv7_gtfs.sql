@@ -1,7 +1,7 @@
 create table gtfs_route_type (transporttype varchar(5) primary key, route_type int4);
 insert into gtfs_route_type values ('TRAM', 0);
 insert into gtfs_route_type values ('METRO', 1);
-insert into gtfs_route_type values ('RAIL', 2);
+insert into gtfs_route_type values ('TRAIN', 2);
 insert into gtfs_route_type values ('BUS', 3);
 insert into gtfs_route_type values ('BOAT', 4);
 
@@ -9,7 +9,7 @@ create table gtfs_wheelchair_accessibility (wheelchairaccessibility
 varchar(13) primary key, wheelchair_accessible int4);
 insert into gtfs_wheelchair_accessibility values ('UNKNOWN', 0);
 insert into gtfs_wheelchair_accessibility values ('ACCESSIBLE', 1);
-insert into gtfs_wheelchair_accessibility values ('INACCESSIBLE', 2);
+insert into gtfs_wheelchair_accessibility values ('NOTACCESSIBLE', 2);
 
 create table dataownerurl (dataownercode varchar(10) primary key, agency_url varchar(50));
 insert into dataownerurl values ('GVB', 'http://www.gvb.nl');
