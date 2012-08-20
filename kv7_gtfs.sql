@@ -64,13 +64,16 @@ WHERE
 l.transporttype = g.transporttype
 ) TO '/tmp/gtfs/routes.txt' WITH CSV HEADER;
 
+alter table timingpoint add column wheelchairaccessible boolean;
+
 COPY (
 SELECT * FROM (
 SELECT 'sa_'||a.stopareacode AS stop_id, stopareaname AS stop_name,
        CAST(st_X(the_geom) AS NUMERIC(8,5)) AS stop_lon,
        CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat,
        1      AS location_type,
-       NULL   AS parent_station
+       NULL   AS parent_station,
+       NULL   as wheelchair_boarding
 FROM   (SELECT stopareacode,
                ST_Transform(st_setsrid(st_makepoint(AVG(locationx_ew), AVG(locationy_ns)), 28992), 4326) AS the_geom
         FROM   (SELECT stopareacode,
@@ -87,12 +90,14 @@ stop_id,
 stop_name,
 CAST(st_X(the_geom) AS NUMERIC(8,5)) AS stop_lon,
 CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat,
-0 AS location_type, parent_station
+0 AS location_type, parent_station,
+wheelchair_boarding
 FROM (
 	SELECT distinct t.timingpointcode as stop_id,
 	t.timingpointname as stop_name,
 	'sa_'||t.stopareacode as parent_station,
-	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom
+	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
+        wheelchairaccessible as wheelchair_boarding
 	FROM timingpoint as t, usertimingpoint as u 
 	WHERE 
 	NOT EXISTS (
