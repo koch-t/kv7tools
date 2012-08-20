@@ -66,6 +66,9 @@ l.transporttype = g.transporttype
 
 alter table timingpoint add column wheelchairaccessible boolean;
 
+alter table timingpoint add column wheelchairaccessible VARCHAR(10);
+update timingpoint set wheelchairaccessible = 'UNKNOWN' where wheelchairaccessible is null;
+
 COPY (
 SELECT * FROM (
 SELECT 'sa_'||a.stopareacode AS stop_id, stopareaname AS stop_name,
@@ -97,9 +100,9 @@ FROM (
 	t.timingpointname as stop_name,
 	'sa_'||t.stopareacode as parent_station,
 	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
-        wheelchairaccessible as wheelchair_boarding
-	FROM timingpoint as t, usertimingpoint as u 
-	WHERE 
+        wheelchair_accessible as wheelchair_boarding
+	FROM timingpoint as t, usertimingpoint as u, gtfs_wheelchair_accessibility as g
+	WHERE wheelchairaccessibility = wheelchairaccessible AND
 	NOT EXISTS (
                      SELECT 1 
 		      FROM usertimingpoint,localservicegrouppasstime
