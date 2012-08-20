@@ -64,7 +64,7 @@ WHERE
 l.transporttype = g.transporttype
 ) TO '/tmp/gtfs/routes.txt' WITH CSV HEADER;
 
-alter table timingpoint add column wheelchairaccessible VARCHAR(10);
+alter table timingpoint add column wheelchairaccessible VARCHAR(13);
 update timingpoint set wheelchairaccessible = 'UNKNOWN' where wheelchairaccessible is null;
 
 COPY (
