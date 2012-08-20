@@ -119,7 +119,7 @@ SELECT
 l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.localservicelevelcode as service_id,
 l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
 destinationname50 as trip_headsign,
-(cast(linedirection as int4) - 1) as direction_id
+(cast(linedirection as int4) - 1) as direction_id,
 wheelchair_accessible
 FROM 
 localservicegrouppasstime as l, destination as d, gtfs_wheelchair_accessibility as g,
