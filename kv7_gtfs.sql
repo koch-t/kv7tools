@@ -64,7 +64,8 @@ WHERE
 l.transporttype = g.transporttype
 ) TO '/tmp/gtfs/routes.txt' WITH CSV HEADER;
 
-alter table timingpoint add column wheelchairaccessible boolean;
+alter table timingpoint add column wheelchairaccessible VARCHAR(10);
+update timingpoint set wheelchairaccessible = 'UNKNOWN' where wheelchairaccessible is null;
 
 COPY (
 SELECT * FROM (
@@ -97,9 +98,9 @@ FROM (
 	t.timingpointname as stop_name,
 	'sa_'||t.stopareacode as parent_station,
 	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
-        wheelchairaccessible as wheelchair_boarding
-	FROM timingpoint as t, usertimingpoint as u 
-	WHERE 
+        wheelchair_accessible as wheelchair_boarding
+	FROM timingpoint as t, usertimingpoint as u, gtfs_wheelchair_accessibility as g
+	WHERE wheelchairaccessibility = wheelchairaccessible AND
 	NOT EXISTS (
                      SELECT 1 
 		      FROM usertimingpoint,localservicegrouppasstime
@@ -113,25 +114,6 @@ FROM (
         AS stops
 ORDER BY location_type DESC, stop_id ASC
 )TO '/tmp/gtfs/stops.txt' WITH CSV HEADER;
-
-copy (
-SELECT 
-l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.localservicelevelcode as service_id,
-l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
-destinationname50 as trip_headsign,
-(cast(linedirection as int4) - 1) as direction_id,
-l.dataownercode||'|'||l.lineplanningnumber||'|'||l.journeypatterncode AS shape_id,
-wheelchair_accessible
-FROM 
-localservicegrouppasstime as l, destination as d, gtfs_wheelchair_accessibility as g,
-(SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v 
-WHERE l.dataownercode = d.dataownercode AND
-l.destinationcode = d.destinationcode AND
-l.userstopordernumber = 1 AND
-v.dataownercode = l.dataownercode AND
-v.localservicelevelcode = l.localservicelevelcode AND
-g.wheelchairaccessibility = l.wheelchairaccessible
-) TO '/tmp/gtfs/trips.txt' WITH CSV HEADER;
 
 UPDATE localservicegrouppasstime 
 SET targetdeparturetime = targetarrivaltime
