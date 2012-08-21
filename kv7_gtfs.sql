@@ -115,15 +115,29 @@ FROM (
 ORDER BY location_type DESC, stop_id ASC
 )TO '/tmp/gtfs/stops.txt' WITH CSV HEADER;
 
-UPDATE localservicegrouppasstime 
-SET targetdeparturetime = targetarrivaltime
-WHERE targetdeparturetime = '00:00:00' AND journeystoptype = 'LAST';
+copy (
+SELECT 
+l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.localservicelevelcode as service_id,
+l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
+destinationname50 as trip_headsign,
+(cast(linedirection as int4) - 1) as direction_id,
+wheelchair_accessible
+FROM 
+localservicegrouppasstime as l, destination as d, gtfs_wheelchair_accessibility as g,
+(SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v 
+WHERE l.dataownercode = d.dataownercode AND
+l.destinationcode = d.destinationcode AND
+l.userstopordernumber = 1 AND
+v.dataownercode = l.dataownercode AND
+v.localservicelevelcode = l.localservicelevelcode AND
+g.wheelchairaccessibility = l.wheelchairaccessible
+) TO '/tmp/gtfs/trips.txt' WITH CSV HEADER;
 
 copy (
 SELECT
 l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
 targetarrivaltime as arrival_time,
-targetdeparturetime as departure_time,
+CASE WHEN (targetdeparturetime = '00:00:00' and journeystoptype = 'LAST') THEN targetarrivaltime ELSE targetdeparturetime END as departure_time,
 timingpointcode as stop_id,
 userstopordernumber as stop_sequence,
 destinationname50 as stop_headsign
