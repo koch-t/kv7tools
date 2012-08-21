@@ -9,7 +9,7 @@ create table gtfs_wheelchair_accessibility (wheelchairaccessibility
 varchar(13) primary key, wheelchair_accessible int4);
 insert into gtfs_wheelchair_accessibility values ('UNKNOWN', 0);
 insert into gtfs_wheelchair_accessibility values ('ACCESSIBLE', 1);
-insert into gtfs_wheelchair_accessibility values ('NOTCCESSIBLE', 2);
+insert into gtfs_wheelchair_accessibility values ('NOTACCESSIBLE', 2);
 
 create table dataownerurl (dataownercode varchar(10) primary key, agency_url varchar(50));
 insert into dataownerurl values ('GVB', 'http://www.gvb.nl');
