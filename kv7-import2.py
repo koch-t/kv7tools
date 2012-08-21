@@ -18,6 +18,7 @@ tables = {
 }
 
 requirements = set([])
+subscriptions = {}
 requirementsdate = set([])
 
 output = codecs.open('kv7.sql', 'w', 'UTF-8')
@@ -29,17 +30,18 @@ for filename in kv7kalenderindex:
     columns = None
     table = None
     dumping = False
+    subscription = None
     for line in GzipFile(filename[:-1], 'r'):
-
         if line[0] == '\\':
             dumping = False
-            if line[1] == 'L' and table == 'LOCALSERVICEGROUPVALIDITY':
+	    if line[1] == 'G':
+	        subscription = line[2:-2].split('|')[2]
+            elif line[1] == 'L' and table == 'LOCALSERVICEGROUPVALIDITY':
                 columns = line[2:-2].split('|')
                 if first:
                     output.write("COPY %(table)s (%(columns)s) FROM STDIN CSV DELIMITER '|' NULL AS '';\n" % {'columns': ', '.join(columns), 'table': table})
                     first = False
                 dumping = True
-
             elif line[1] == 'T':
                 table = line[2:].split('|')[0]
 
@@ -47,6 +49,7 @@ for filename in kv7kalenderindex:
             line = line.decode('UTF-8')
             if line not in requirementsdate:
                 dataownercode, localservicelevelcode, operationdate = line.split('|')
+                subscriptions[dataownercode+'|'+localservicelevelcode] = subscription
                 requirements.add(dataownercode+'|'+localservicelevelcode)
                 requirementsdate.add(line)
                 output.write(line[:-2].replace('\\0', '') + '\n')
@@ -65,15 +68,25 @@ for line in kv7planningindex:
 
 output.write('\\.\n')
 use_files = set([])
+incomplete_subscriptions = set([])
 
 for x in requirements:
     try:
         for y in available[x]:
             use_files.add(y)
     except:
+        print x + ' Subscription ' + subscriptions[x]
+	incomplete_subscriptions.add(subscriptions[x])
+
+print '----------------------------------------------------'
+if len(incomplete_subscriptions) == 0:
+    print 'All subscriptions complete'
+else:
+    print 'Incomplete: ' 
+    for x in incomplete_subscriptions:
         print x
-
-
+del(subscriptions)
+print
 first = True
 i = 0
 
