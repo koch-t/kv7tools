@@ -69,7 +69,7 @@ CREATE TABLE "localservicegrouppasstime" (
         "userstopcode"          VARCHAR(10)   NOT NULL,
         "journeypatterncode"    VARCHAR(5)    NOT NULL,
         "userstopordernumber"   DECIMAL(3)    NOT NULL,
-        "linedirection"         CHAR(1)       NOT NULL,
+        "linedirection"         DECIMAL(1)    NOT NULL,
         "destinationcode"       VARCHAR(10)   NOT NULL,
         "targetarrivaltime"     VARCHAR(8)    NOT NULL,
         "targetdeparturetime"   VARCHAR(8)    NOT NULL,
