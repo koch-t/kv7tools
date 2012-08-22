@@ -121,6 +121,7 @@ l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.lo
 l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
 destinationname50 as trip_headsign,
 (cast(linedirection as int4) - 1) as direction_id,
+l.dataownercode||'|'||lineplanningnumber||'|'||journeypatterncode as shape_id,
 wheelchair_accessible
 FROM 
 localservicegrouppasstime as l, destination as d, gtfs_wheelchair_accessibility as g,
@@ -165,13 +166,17 @@ FROM (
         rank() over (PARTITION BY j.dataownercode, j.lineplanningnumber, j.journeypatterncode ORDER BY j.dataownercode, j.lineplanningnumber, j.journeypatterncode, j.timinglinkorder, p.distancesincestartoflink) AS shape_pt_sequence
 	FROM
 	(select *,min(validfrom) from jopatiminglink group by dataownercode,lineplanningnumber,journeypatterncode,timinglinkorder,validfrom) as j, 
-        (select *,min(validfrom) from jopatiminglinkpool group by dataownercode,lineplanningnumber,journeypatterncode,timinglinkorder,validfrom,distancesincestartoflink) as p
+        (select *,min(validfrom) from jopatiminglinkpool group by dataownercode,lineplanningnumber,journeypatterncode,timinglinkorder,validfrom,distancesincestartoflink) as p,
+        (select distinct on (dataownercode,lineplanningnumber,journeypatterncode) dataownercode,lineplanningnumber,journeypatterncode from localservicegrouppasstime) as valid
         WHERE
         j.dataownercode = p.dataownercode AND
         j.lineplanningnumber = p.lineplanningnumber AND
         j.journeypatterncode = p.journeypatterncode AND
         j.timinglinkorder = p.timinglinkorder AND
-        j.validfrom = p.validfrom
+        j.validfrom = p.validfrom AND
+        j.dataownercode = valid.dataownercode AND
+        j.lineplanningnumber = valid.lineplanningnumber AND
+        j.journeypatterncode = valid.journeypatterncode
         ORDER BY 
         j.dataownercode,
         j.lineplanningnumber,
