@@ -140,7 +140,8 @@ targetarrivaltime as arrival_time,
 CASE WHEN (targetdeparturetime = '00:00:00' and journeystoptype = 'LAST') THEN targetarrivaltime ELSE targetdeparturetime END as departure_time,
 timingpointcode as stop_id,
 userstopordernumber as stop_sequence,
-destinationname50 as stop_headsign
+destinationname50 as stop_headsign,
+cast (istimingstop as INT4) as timedstop
 FROM
 localservicegrouppasstime as l,destination as d, usertimingpoint as u,
      (SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v
