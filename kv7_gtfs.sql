@@ -74,7 +74,8 @@ SELECT 'sa_'||a.stopareacode AS stop_id, stopareaname AS stop_name,
        CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat,
        1      AS location_type,
        NULL   AS parent_station,
-       NULL   as wheelchair_boarding
+       NULL   AS wheelchair_boarding,
+       NULL   AS platform_code
 FROM   (SELECT stopareacode,
                ST_Transform(st_setsrid(st_makepoint(AVG(locationx_ew), AVG(locationy_ns)), 28992), 4326) AS the_geom
         FROM   (SELECT stopareacode,
@@ -92,21 +93,22 @@ stop_name,
 CAST(st_X(the_geom) AS NUMERIC(8,5)) AS stop_lon,
 CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat,
 0 AS location_type, parent_station,
-wheelchair_accessible as wheelchair_boarding
+wheelchair_accessible as wheelchair_boarding,
+platform_code
 FROM gtfs_wheelchair_accessibility as g, (
 	SELECT distinct t.timingpointcode as stop_id,
 	t.timingpointname as stop_name,
 	'sa_'||t.stopareacode as parent_station,
 	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
-        wheelchairaccessible
-	FROM timingpoint as t
-	WHERE t.timingpointcode in (
-                     SELECT distinct timingpointcode
+        wheelchairaccessible,
+	platform_code
+	FROM timingpoint as t, (SELECT distinct timingpointcode,sidecode as platform_code
 		      FROM usertimingpoint,localservicegrouppasstime
 			WHERE	journeystoptype != 'INFOPOINT' AND
 				usertimingpoint.dataownercode = localservicegrouppasstime.dataownercode AND
-				usertimingpoint.userstopcode = localservicegrouppasstime.userstopcode)
-                    ) AS X WHERE wheelchairaccessibility = wheelchairaccessible) 
+				usertimingpoint.userstopcode = localservicegrouppasstime.userstopcode) as tpc
+                    WHERE t.timingpointcode = tpc.timingpointcode
+		    ) AS X WHERE wheelchairaccessibility = wheelchairaccessible) 
         AS stops
 ORDER BY location_type DESC, stop_id ASC
 )TO '/tmp/gtfs/stops.txt' WITH CSV HEADER;
@@ -137,7 +139,7 @@ CASE WHEN (targetdeparturetime = '00:00:00' and journeystoptype = 'LAST') THEN t
 timingpointcode as stop_id,
 userstopordernumber as stop_sequence,
 destinationname50 as stop_headsign,
-cast (istimingstop as INT4) as timedstop
+cast (istimingstop as INT4) as timepoint
 FROM
 localservicegrouppasstime as l,destination as d, usertimingpoint as u,
      (SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v
