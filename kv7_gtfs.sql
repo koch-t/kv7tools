@@ -92,25 +92,21 @@ stop_name,
 CAST(st_X(the_geom) AS NUMERIC(8,5)) AS stop_lon,
 CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat,
 0 AS location_type, parent_station,
-wheelchair_boarding
-FROM (
+wheelchair_accessible as wheelchair_boarding
+FROM gtfs_wheelchair_accessibility as g, (
 	SELECT distinct t.timingpointcode as stop_id,
 	t.timingpointname as stop_name,
 	'sa_'||t.stopareacode as parent_station,
 	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
-        wheelchair_accessible as wheelchair_boarding
-	FROM timingpoint as t, usertimingpoint as u, gtfs_wheelchair_accessibility as g
-	WHERE wheelchairaccessibility = wheelchairaccessible AND
-	NOT EXISTS (
-                     SELECT 1 
+        wheelchairaccessible
+	FROM timingpoint as t
+	WHERE t.timingpointcode in (
+                     SELECT distinct timingpointcode
 		      FROM usertimingpoint,localservicegrouppasstime
-			WHERE t.timingpointcode = usertimingpoint.timingpointcode AND
-				journeystoptype = 'INFOPOINT' AND
+			WHERE	journeystoptype != 'INFOPOINT' AND
 				usertimingpoint.dataownercode = localservicegrouppasstime.dataownercode AND
-				usertimingpoint.userstopcode = localservicegrouppasstime.userstopcode) AND
-					u.timingpointcode = t.timingpointcode AND u.userstopcode in 
-					(SELECT distinct userstopcode FROM localservicegrouppasstime)
-                    ) AS X) 
+				usertimingpoint.userstopcode = localservicegrouppasstime.userstopcode)
+                    ) AS X WHERE wheelchairaccessibility = wheelchairaccessible) 
         AS stops
 ORDER BY location_type DESC, stop_id ASC
 )TO '/tmp/gtfs/stops.txt' WITH CSV HEADER;
