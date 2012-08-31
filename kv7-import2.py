@@ -123,12 +123,12 @@ for filename in sorted(use_files, reverse=True):
                 key = myline[0]+"|"+myline[1]
                 if key in requirements:
                     done.add(key)
-                    output.write(line[:-2].replace('\\0', '') + '\n')
+                    output.write(line[:-2].replace('\\0', '').replace('\"','\"\"') + '\n')
             else:
                 mylines = line[:-2].split('|')
                 key = '|'.join(mylines[0:len(tables[table])])
                 if key not in memory[table]:
-                    memory[table][key] = line[:-2].replace('\\0', '')
+                    memory[table][key] = line[:-2].replace('\\0', '').replace('\"','\"\"')
     requirements = requirements - done
 
 output.write('\\.\n')
