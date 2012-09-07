@@ -94,7 +94,7 @@ CAST(st_X(the_geom) AS NUMERIC(8,5)) AS stop_lon,
 CAST(st_Y(the_geom) AS NUMERIC(9,6)) AS stop_lat,
 0 AS location_type, parent_station,
 wheelchair_accessible as wheelchair_boarding,
-platform_code
+CASE WHEN (platform_code in ('-','Left','Right')) THEN NULL ELSE platform_code END as platform_code
 FROM gtfs_wheelchair_accessibility as g, (
 	SELECT distinct t.timingpointcode as stop_id,
 	t.timingpointname as stop_name,
