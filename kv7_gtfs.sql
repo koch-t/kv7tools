@@ -59,7 +59,7 @@ dataownercode as agency_id,
 linepublicnumber as route_short_name,
 CASE WHEN linepublicnumber <> linename THEN linename ELSE '' END as route_long_name,
 g.route_type as route_type
-FROM line as l, gtfs_route_type as g 
+FROM line as l, gtfs_route_type as g
 WHERE 
 l.transporttype = g.transporttype
 ) TO '/tmp/gtfs/routes.txt' WITH CSV HEADER;
@@ -102,7 +102,8 @@ FROM gtfs_wheelchair_accessibility as g, (
 	ST_Transform(st_setsrid(st_makepoint(locationx_ew, locationy_ns), 28992), 4326) AS the_geom,
         wheelchairaccessible,
 	platform_code
-	FROM timingpoint as t, (SELECT distinct timingpointcode,sidecode as platform_code
+	FROM timingpoint as t, (SELECT distinct on(timingpointcode)
+	              timingpointcode,sidecode as platform_code
 		      FROM usertimingpoint,localservicegrouppasstime
 			WHERE	journeystoptype != 'INFOPOINT' AND
 				usertimingpoint.dataownercode = localservicegrouppasstime.dataownercode AND
@@ -139,7 +140,9 @@ CASE WHEN (targetdeparturetime = '00:00:00' and journeystoptype = 'LAST') THEN t
 timingpointcode as stop_id,
 userstopordernumber as stop_sequence,
 destinationname50 as stop_headsign,
-cast (istimingstop as INT4) as timepoint
+cast (istimingstop as INT4) as timepoint,
+CASE WHEN (productformulatype in (2,35,36)) THEN 2 ELSE 0 END as pickup_type,
+CASE WHEN (productformulatype in (2,35,36)) THEN 2 ELSE 0 END as drop_off_type
 FROM
 localservicegrouppasstime as l,destination as d, usertimingpoint as u,
      (SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v
