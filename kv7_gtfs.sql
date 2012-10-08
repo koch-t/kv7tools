@@ -11,6 +11,31 @@ insert into gtfs_wheelchair_accessibility values ('UNKNOWN', 0);
 insert into gtfs_wheelchair_accessibility values ('ACCESSIBLE', 1);
 insert into gtfs_wheelchair_accessibility values ('NOTACCESSIBLE', 2);
 
+create table gtfs_route_bikes_allowed (
+        "dataownercode"      VARCHAR(10)   NOT NULL,
+        "lineplanningnumber" VARCHAR(10)   NOT NULL,
+        "trip_bikes_allowed" int4,
+	PRIMARY KEY ("dataownercode", "lineplanningnumber")
+);
+insert into gtfs_route_bikes_allowed values ('GVB','900',2);
+insert into gtfs_route_bikes_allowed values ('GVB','901',2);
+insert into gtfs_route_bikes_allowed values ('GVB','902',2);
+insert into gtfs_route_bikes_allowed values ('GVB','904',2);
+insert into gtfs_route_bikes_allowed values ('GVB','905',2);
+insert into gtfs_route_bikes_allowed values ('GVB','906',2);
+insert into gtfs_route_bikes_allowed values ('GVB','907',2);
+insert into gtfs_route_bikes_allowed values ('GVB','50',2);
+insert into gtfs_route_bikes_allowed values ('GVB','51',2);
+insert into gtfs_route_bikes_allowed values ('GVB','52',2);
+insert into gtfs_route_bikes_allowed values ('GVB','53',2);
+insert into gtfs_route_bikes_allowed values ('GVB','54',2);
+insert into gtfs_route_bikes_allowed values ('CXX','N419',2);
+insert into gtfs_route_bikes_allowed values ('CXX','Z020',2);
+insert into gtfs_route_bikes_allowed values ('CXX','Z050',2);
+insert into gtfs_route_bikes_allowed values ('CXX','Z060',2);
+
+
+
 create table dataownerurl (dataownercode varchar(10) primary key, agency_url varchar(50));
 insert into dataownerurl values ('GVB', 'http://www.gvb.nl');
 insert into dataownerurl values ('VTN', 'http://www.veolia.nl');
@@ -120,10 +145,12 @@ l.dataownercode||'|'||lineplanningnumber as route_id, l.dataownercode||'|'||l.lo
 l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
 destinationname50 as trip_headsign,
 (cast(linedirection as int4) - 1) as direction_id,
-wheelchair_accessible
+wheelchair_accessible,
+trip_bikes_allowed
 FROM 
-localservicegrouppasstime as l, destination as d, gtfs_wheelchair_accessibility as g,
-(SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v 
+destination as d, gtfs_wheelchair_accessibility as g,
+(SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v, 
+localservicegrouppasstime as l LEFT JOIN gtfs_route_bikes_allowed using (dataownercode,lineplanningnumber)
 WHERE l.dataownercode = d.dataownercode AND
 l.destinationcode = d.destinationcode AND
 l.userstopordernumber = 1 AND
