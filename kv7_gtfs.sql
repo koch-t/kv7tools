@@ -51,7 +51,7 @@ copy (
 SELECT 
 d.dataownercode AS agency_id,
 dataownername AS agency_name,
-'http://'||dataownername||'.nl/' AS agency_url,
+agency_url,
 'Europe/Amsterdam' AS agency_timezone,
 'nl' AS agency_lang
 FROM dataowner as d,dataownerurl
@@ -149,35 +149,39 @@ wheelchair_accessible,
 trip_bikes_allowed
 FROM 
 destination as d, gtfs_wheelchair_accessibility as g,
-(SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v, 
 localservicegrouppasstime as l LEFT JOIN gtfs_route_bikes_allowed using (dataownercode,lineplanningnumber)
 WHERE l.dataownercode = d.dataownercode AND
 l.destinationcode = d.destinationcode AND
-l.userstopordernumber = 1 AND
-v.dataownercode = l.dataownercode AND
-v.localservicelevelcode = l.localservicelevelcode AND
+l.journeystoptype = 'FIRST' AND
 g.wheelchairaccessibility = l.wheelchairaccessible
 ) TO '/tmp/gtfs/trips.txt' WITH CSV HEADER;
 
 copy (
 SELECT
-l.dataownercode||'|'||lineplanningnumber||'|'||l.localservicelevelcode||'|'||journeynumber||'|'||fortifyordernumber as trip_id,
+l.dataownercode||'|'||l.lineplanningnumber||'|'||l.localservicelevelcode||'|'||l.journeynumber||'|'||l.fortifyordernumber as trip_id,
 targetarrivaltime as arrival_time,
 CASE WHEN (targetdeparturetime = '00:00:00' and journeystoptype = 'LAST') THEN targetarrivaltime ELSE targetdeparturetime END as departure_time,
 timingpointcode as stop_id,
 userstopordernumber as stop_sequence,
-destinationname50 as stop_headsign,
+CASE WHEN (l.destinationcode <> trip.destinationcode) THEN destinationname50 ELSE null END as stop_headsign,
 cast (istimingstop as INT4) as timepoint,
-CASE WHEN (productformulatype in (2,35,36)) THEN 2 ELSE 0 END as pickup_type,
-CASE WHEN (productformulatype in (2,35,36)) THEN 2 ELSE 0 END as drop_off_type
+CASE WHEN (productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as pickup_type,
+CASE WHEN (productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as drop_off_type
 FROM
 localservicegrouppasstime as l,destination as d, usertimingpoint as u,
-     (SELECT distinct dataownercode, localservicelevelcode FROM localservicegroupvalidity) as v
+(	SELECT
+	dataownercode, localservicelevelcode, lineplanningnumber, journeynumber, fortifyordernumber,destinationcode
+	FROM
+	localservicegrouppasstime
+ 	WHERE journeystoptype = 'FIRST') as trip
 WHERE journeystoptype <> 'INFOPOINT' AND
 l.dataownercode = d.dataownercode AND
 l.destinationcode = d.destinationcode AND
 l.dataownercode = u.dataownercode AND
 l.userstopcode = u.userstopcode AND
-v.dataownercode = l.dataownercode AND
-v.localservicelevelcode = l.localservicelevelcode
+l.dataownercode = trip.dataownercode AND
+l.localservicelevelcode = trip.localservicelevelcode AND
+l.lineplanningnumber = trip.lineplanningnumber AND
+l.journeynumber = trip.journeynumber AND
+l.fortifyordernumber = trip.fortifyordernumber
 ) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;

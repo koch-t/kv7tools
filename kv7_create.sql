@@ -41,8 +41,8 @@ CREATE TABLE "timingpoint" (
         "timingpointcode" VARCHAR(10)   NOT NULL,
         "timingpointname" VARCHAR(50)   NOT NULL,
         "timingpointtown" VARCHAR(50)   NOT NULL,
-        "locationx_ew"    INTEGER       NOT NULL,
-        "locationy_ns"    INTEGER       NOT NULL,
+        "locationx_ew"    INTEGER       ,
+        "locationy_ns"    INTEGER       ,
         "locationz"       INTEGER,
         "stopareacode"    VARCHAR(10),
          PRIMARY KEY ("dataownercode", "timingpointcode")
@@ -77,7 +77,7 @@ CREATE TABLE "localservicegrouppasstime" (
         "wheelchairaccessible"  VARCHAR(13)   NOT NULL,
         "journeystoptype"       VARCHAR(12)   NOT NULL,
         "istimingstop"          BOOLEAN       NOT NULL,
-        "productformulatype"    DECIMAL(4),
+        "productformulatype"    VARCHAR(10),
          PRIMARY KEY ("dataownercode", "localservicelevelcode", "lineplanningnumber", "journeynumber", "fortifyordernumber", "userstopcode", "userstopordernumber")
 );
 CREATE TABLE "localservicegroup" (
