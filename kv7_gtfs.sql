@@ -159,22 +159,17 @@ g.wheelchairaccessibility = l.wheelchairaccessible
 copy (
 SELECT
 l.dataownercode||'|'||l.lineplanningnumber||'|'||l.localservicelevelcode||'|'||l.journeynumber||'|'||l.fortifyordernumber as trip_id,
-targetarrivaltime as arrival_time,
-CASE WHEN (targetdeparturetime = '00:00:00' and journeystoptype = 'LAST') THEN targetarrivaltime ELSE targetdeparturetime END as departure_time,
+l.targetarrivaltime as arrival_time,
+CASE WHEN (l.targetdeparturetime = '00:00:00' and l.journeystoptype = 'LAST') THEN l.targetarrivaltime ELSE l.targetdeparturetime END as departure_time,
 timingpointcode as stop_id,
-userstopordernumber as stop_sequence,
+l.userstopordernumber as stop_sequence,
 CASE WHEN (l.destinationcode <> trip.destinationcode) THEN destinationname50 ELSE null END as stop_headsign,
-cast (istimingstop as INT4) as timepoint,
-CASE WHEN (productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as pickup_type,
-CASE WHEN (productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as drop_off_type
+cast (l.istimingstop as INT4) as timepoint,
+CASE WHEN (l.productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as pickup_type,
+CASE WHEN (l.productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as drop_off_type
 FROM
-localservicegrouppasstime as l,destination as d, usertimingpoint as u,
-(	SELECT
-	dataownercode, localservicelevelcode, lineplanningnumber, journeynumber, fortifyordernumber,destinationcode
-	FROM
-	localservicegrouppasstime
- 	WHERE journeystoptype = 'FIRST') as trip
-WHERE journeystoptype <> 'INFOPOINT' AND
+localservicegrouppasstime as l,destination as d, usertimingpoint as u,localservicegrouppasstime as trip
+WHERE l.journeystoptype <> 'INFOPOINT' AND
 l.dataownercode = d.dataownercode AND
 l.destinationcode = d.destinationcode AND
 l.dataownercode = u.dataownercode AND
@@ -183,5 +178,7 @@ l.dataownercode = trip.dataownercode AND
 l.localservicelevelcode = trip.localservicelevelcode AND
 l.lineplanningnumber = trip.lineplanningnumber AND
 l.journeynumber = trip.journeynumber AND
-l.fortifyordernumber = trip.fortifyordernumber
+l.fortifyordernumber = trip.fortifyordernumber AND
+l.journeypatterncode = trip.journeypatterncode AND
+trip.journeystoptype = 'FIRST'
 ) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
