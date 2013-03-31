@@ -6,15 +6,15 @@ import codecs
 table = None
 
 dumping = False
-
-output = codecs.open('kv7planning.idx', 'r', 'UTF-8')
-old = output.read()
-
 knownfiles = set([])
-for x in old.split('\n'):
-    knownfiles.add(sys.argv[1] + '/' + x.split('|')[-1])
 
-output.close()
+try:
+    with codecs.open('kv7planning.idx', 'r', 'UTF-8') as output:
+        old = output.read()
+        for x in old.split('\n'):
+                knownfiles.add(sys.argv[1] + '/' + x.split('|')[-1])
+except:
+    old = ''
 
 files = []
 for dirs in sys.argv[1:]:
