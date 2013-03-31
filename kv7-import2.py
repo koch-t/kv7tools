@@ -60,10 +60,7 @@ kv7planningindex = open('kv7planning.idx', 'r')
 for line in kv7planningindex:
     dataownercode, localservicelevelcode, filename = line[:-1].split('|')
     key = dataownercode + "|" + localservicelevelcode
-    if key in available:
-        pass
-        #available[key].append(filename)
-    elif (dataownercode + '|' + localservicelevelcode) in requirements:
+    if (dataownercode + '|' + localservicelevelcode) in requirements:
         available[key] = [filename]
 
 output.write('\\.\n')
