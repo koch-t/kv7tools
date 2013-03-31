@@ -12,7 +12,7 @@ lastupdated_filenames = {}
 for dirs in sys.argv[1:]:
     files += [dirs + '/' + x for x in os.listdir(dirs)]
 
-for filename in files:
+for filename in sorted(files):
     data = GzipFile(filename, 'r').read()
     firstline = data.split('\n', 1)[0]
     values = firstline.split('|')
