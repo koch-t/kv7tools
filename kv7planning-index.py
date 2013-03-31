@@ -25,7 +25,7 @@ files = set(files) - (knownfiles)
 output = codecs.open('kv7planning.idx', 'w', 'UTF-8')
 output.write(old)
 
-for filename in files:
+for filename in sorted(files):
     localservicelevelcodes = set([])
 
     for line in GzipFile(filename, 'r'):
