@@ -2,6 +2,7 @@ from gzip import GzipFile
 import sys
 import os
 import codecs
+from datetime import datetime,timedelta
 
 output = codecs.open('kv7kalender.idx', 'w', 'UTF-8')
 
