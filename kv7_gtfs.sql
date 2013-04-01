@@ -46,6 +46,7 @@ insert into dataownerurl values ('EBS', 'http://www.ebs-ov.nl');
 insert into dataownerurl values ('SYNTUS', 'http://www.syntus.nl');
 insert into dataownerurl values ('QBUZZ', 'http://www.qbuzz.nl');
 insert into dataownerurl values ('NS', 'http://www.ns.nl');
+insert into dataownerurl values ('RET', 'http://www.ret.nl');
 
 copy (
 SELECT 
@@ -168,7 +169,8 @@ cast (l.istimingstop as INT4) as timepoint,
 CASE WHEN (l.productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as pickup_type,
 CASE WHEN (l.productformulatype in ('2','35','36')) THEN 2 ELSE 0 END as drop_off_type
 FROM
-localservicegrouppasstime as l,destination as d, usertimingpoint as u,localservicegrouppasstime as trip
+localservicegrouppasstime as l,destination as d, usertimingpoint as u,
+(select distinct dataownercode,localservicelevelcode,lineplanningnumber,journeypatterncode,destinationcode from localservicegrouppasstime where journeystoptype = 'FIRST') as trip
 WHERE l.journeystoptype <> 'INFOPOINT' AND
 l.dataownercode = d.dataownercode AND
 l.destinationcode = d.destinationcode AND
@@ -177,8 +179,5 @@ l.userstopcode = u.userstopcode AND
 l.dataownercode = trip.dataownercode AND
 l.localservicelevelcode = trip.localservicelevelcode AND
 l.lineplanningnumber = trip.lineplanningnumber AND
-l.journeynumber = trip.journeynumber AND
-l.fortifyordernumber = trip.fortifyordernumber AND
-l.journeypatterncode = trip.journeypatterncode AND
-trip.journeystoptype = 'FIRST'
+l.journeypatterncode = trip.journeypatterncode
 ) TO '/tmp/gtfs/stop_times.txt' WITH CSV HEADER;
