@@ -11,7 +11,7 @@ lastupdated_filenames = {}
 kalender_filenames = [sys.argv[1] + '/' + x for x in os.listdir(sys.argv[1])]
 kalender_threshold = (datetime.now() - timedelta(days=3)).isoformat()
 
-for filename in ordered(kalender_filenames):
+for filename in sorted(kalender_filenames):
     with GzipFile(filename, 'r') as f:
         firstline = f.readline()[:-1]
         values = firstline.split('|')
