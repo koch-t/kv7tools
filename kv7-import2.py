@@ -20,6 +20,11 @@ tables = {
 requirements = set([])
 subscriptions = {}
 requirementsdate = set([])
+usedUserstopCodes = set([])
+usedTimingPoints = set([])
+skipInfopoints = (len(sys.argv) == 4 and sys.argv[-1] == '--skipInfopoints')
+if skipInfopoints:
+    print 'Skipping Infopoints/dummies'
 
 output = codecs.open('kv7.sql', 'w', 'UTF-8')
 
@@ -89,7 +94,8 @@ i = 0
 
 memory = {}
 memory_columns = {}
-
+usedUserStopCodes = set([])
+usedTimingPointCodes = set([])
 
 for filename in sorted(use_files, reverse=True):
     i += 1
@@ -120,7 +126,10 @@ for filename in sorted(use_files, reverse=True):
                 key = myline[0]+"|"+myline[1]
                 if key in requirements:
                     done.add(key)
+                    if skipInfopoints and str(myline[14]) == 'INFOPOINT':
+                        continue
                     output.write(line[:-2].replace('\\0', '').replace('\"','\"\"') + '\n')
+                    usedUserstopCodes.add(str(myline[0])+'|'+str(myline[5]))
             else:
                 mylines = line[:-2].split('|')
                 key = '|'.join(mylines[0:len(tables[table])])
@@ -129,6 +138,18 @@ for filename in sorted(use_files, reverse=True):
     requirements = requirements - done
 
 output.write('\\.\n')
+
+if skipInfopoints:
+    usedTimingPoints = set([])
+    for key,line in memory['USERTIMINGPOINT'].items():
+        values = line.split('|')
+        if key not in usedUserstopCodes:
+            del(memory['USERTIMINGPOINT'][key])
+        else:
+            usedTimingPoints.add(values[2]+'|'+values[3])
+    for key,line in memory['TIMINGPOINT'].items():
+        if key not in usedTimingPoints:
+            del(memory['TIMINGPOINT'][key])
 
 for table in memory.keys():
     output.write("COPY %(table)s (%(columns)s) FROM STDIN CSV DELIMITER '|' NULL AS '';\n" % {'columns': memory_columns[table], 'table': table})
