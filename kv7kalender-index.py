@@ -12,7 +12,8 @@ kalender_filenames = [sys.argv[1] + '/' + x for x in os.listdir(sys.argv[1])]
 kalender_threshold = (datetime.now() - timedelta(days=3)).isoformat()
 
 for filename in sorted(kalender_filenames):
-    with GzipFile(filename, 'r') as f:
+    f = GzipFile(filename, 'r')
+    try:
         firstline = f.readline()[:-1]
         values = firstline.split('|')
         subscription = values[2]
@@ -23,6 +24,8 @@ for filename in sorted(kalender_filenames):
             lastupdated_filenames[subscription] = {'filename' : filename, 'creationdate' : creationdate}
         elif creationdate > lastupdated_filenames[subscription]['creationdate']:
             lastupdated_filenames[subscription] = {'filename' : filename, 'creationdate' : creationdate}
+    finally:
+        f.close()
 
 for key, values in lastupdated_filenames.items():
         print key + ' - ' + values['filename']
