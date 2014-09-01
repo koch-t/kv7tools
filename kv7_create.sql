@@ -52,6 +52,8 @@ CREATE TABLE "usertimingpoint" (
         "userstopcode"             VARCHAR(10)   NOT NULL,
         "timingpointdataownercode" VARCHAR(10)   NOT NULL,
         "timingpointcode"          VARCHAR(10)   NOT NULL,
+        "getin"                    BOOLEAN       NOT NULL,
+        "getout"                   BOOLEAN       NOT NULL,
          PRIMARY KEY ("dataownercode", "userstopcode")
 );
 CREATE TABLE "stoparea" (
