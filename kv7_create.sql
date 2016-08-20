@@ -75,7 +75,7 @@ CREATE TABLE "localservicegrouppasstime" (
         "destinationcode"       VARCHAR(10)   NOT NULL,
         "targetarrivaltime"     VARCHAR(8)    NOT NULL,
         "targetdeparturetime"   VARCHAR(8)    NOT NULL,
-        "sidecode"              VARCHAR(10)   NOT NULL,
+        "sidecode"              VARCHAR(10),
         "wheelchairaccessible"  VARCHAR(13)   NOT NULL,
         "journeystoptype"       VARCHAR(12)   NOT NULL,
         "istimingstop"          BOOLEAN       NOT NULL,
