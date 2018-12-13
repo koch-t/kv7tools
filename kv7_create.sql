@@ -12,6 +12,9 @@ CREATE TABLE "line" (
         "linename"           VARCHAR(50),
         "linevetagnumber"    DECIMAL(3),
         "transporttype"      VARCHAR(5)    NOT NULL,
+        "lineicon"           INTEGER,
+        "linecolor"          VARCHAR(6),
+        "linetextcolor"      VARCHAR(6),
          PRIMARY KEY ("dataownercode", "lineplanningnumber")
 );
 CREATE TABLE "destination" (
@@ -26,6 +29,12 @@ CREATE TABLE "destination" (
         "destinationdetail19"  VARCHAR(19),
         "destinationdetail16"  VARCHAR(16),
         "destinationdisplay16" VARCHAR(16),
+        "destinationname21"    VARCHAR(21),
+        "destinationdetail21"  VARCHAR(21),
+        "relevantdestnamedetail" VARCHAR(5),
+        "desticon"             INTEGER,
+        "destcolor"            VARCHAR(6),
+        "desttextcolor"        VARCHAR(6),
          PRIMARY KEY ("dataownercode", "destinationcode")
 );
 CREATE TABLE "destinationvia" (
@@ -75,11 +84,20 @@ CREATE TABLE "localservicegrouppasstime" (
         "destinationcode"       VARCHAR(10)   NOT NULL,
         "targetarrivaltime"     VARCHAR(8)    NOT NULL,
         "targetdeparturetime"   VARCHAR(8)    NOT NULL,
-        "sidecode"              VARCHAR(10)   NOT NULL,
+        "sidecode"              VARCHAR(10),
         "wheelchairaccessible"  VARCHAR(13)   NOT NULL,
         "journeystoptype"       VARCHAR(12)   NOT NULL,
         "istimingstop"          BOOLEAN       NOT NULL,
         "productformulatype"    VARCHAR(10),
+        "getin"                 BOOLEAN,
+        "getout"                BOOLEAN,
+        "showflexibletrip"      VARCHAR(8),
+        "linedesticon"          INTEGER,
+        "linedestcolor"         VARCHAR(6),
+        "linedesttextcolor"     VARCHAR(6),
+        "blockcode"             VARCHAR(30),
+        "sequenceinblock"       VARCHAR(30),
+        "vehiclejourneytype"    VARCHAR(255),
          PRIMARY KEY ("dataownercode", "localservicelevelcode", "lineplanningnumber", "journeynumber", "fortifyordernumber", "userstopcode", "userstopordernumber")
 );
 CREATE TABLE "localservicegroup" (
